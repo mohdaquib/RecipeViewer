@@ -1,28 +1,30 @@
 package com.recipeviewer
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
-
-import recipeviewer.composeapp.generated.resources.Res
-import recipeviewer.composeapp.generated.resources.compose_multiplatform
+import com.recipeviewer.navigation.Screen
+import com.recipeviewer.ui.screens.RecipeListScreen
+import com.recipeviewer.ui.theme.AppTheme
 
 @Composable
-@Preview
 fun App() {
-    MaterialTheme {
-        Text("Recipe Viewer - Coming Soon")
+    AppTheme {
+        val currentScreen = remember { mutableStateOf<Screen>(Screen.RecipeList) }
+        when(val screen = currentScreen.value) {
+            is Screen.RecipeList -> {
+                RecipeListScreen(onRecipeClick = { id ->
+                    currentScreen.value = Screen.RecipeDetail(id)
+                })
+            }
+
+            is Screen.RecipeDetail -> {
+                // TODO: implement later
+                Text(text = "Recipe Detail screen - ID: ${screen.id}", modifier = Modifier)
+            }
+        }
     }
 }

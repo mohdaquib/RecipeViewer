@@ -6,6 +6,7 @@ import com.recipeviewer.data.remote.RecipeApiImpl
 import com.recipeviewer.data.remote.createRecipeHttpClient
 import com.recipeviewer.data.repository.RecipeRepositoryImpl
 import com.recipeviewer.domain.RecipeRepository
+import com.recipeviewer.domain.usecases.GetRecipeByIdUseCase
 import com.recipeviewer.domain.usecases.SearchRecipesUseCase
 
 object AppModule {
@@ -25,5 +26,9 @@ object AppModule {
 
     val searchRecipesUseCase: SearchRecipesUseCase by lazy {
         SearchRecipesUseCase(recipeRepository = recipeRepository)
+    }
+
+    val getRecipeByIdUseCase: GetRecipeByIdUseCase by lazy {
+        GetRecipeByIdUseCase(recipeRepository = recipeRepository)
     }
 }

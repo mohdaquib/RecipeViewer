@@ -41,6 +41,8 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
+            implementation(libs.material.icons.extended)
+            implementation(libs.compose.navigation)
 
             // Networking & Data
             implementation(libs.ktor.client.core)

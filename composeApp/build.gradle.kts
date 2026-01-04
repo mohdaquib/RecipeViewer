@@ -53,9 +53,14 @@ kotlin {
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
 
-            // Kamel
+            // Coil
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
+
+            // Voyager
+            implementation(libs.voyager.navigator)
+            implementation(libs.voyager.screen.model)
+            implementation(libs.voyager.transitions)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

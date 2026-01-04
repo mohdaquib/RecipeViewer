@@ -41,7 +41,6 @@ fun RecipeListScreen(
     viewModel: RecipeListViewModel = remember { RecipeListViewModel() },
 ) {
     val state by viewModel.uiState.collectAsState()
-
     Scaffold(
         topBar = {
             TopAppBar(

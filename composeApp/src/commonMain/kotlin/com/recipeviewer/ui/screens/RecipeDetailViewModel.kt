@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.recipeviewer.di.AppModule
 import com.recipeviewer.domain.RecipeDetail
+import com.recipeviewer.domain.error.NetworkError
 import com.recipeviewer.domain.usecases.GetRecipeByIdUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +38,14 @@ class RecipeDetailViewModel(
                         }
                     }
                     else -> {
-                        it.copy(isLoading = false, errorMessage = result.exceptionOrNull()?.message ?: "Failed to load recipe")
+                        val message = when (val error = result.exceptionOrNull()) {
+                            NetworkError.NoInternet -> "No internet connection"
+                            NetworkError.Timeout -> "Connection timed out"
+                            NetworkError.UnknownHost -> "Cannot reach server. Check your connection."
+                            NetworkError.ServerError -> "Server error. Try again later."
+                            else -> error?.message ?: "Something went wrong"
+                        }
+                        it.copy(isLoading = false, errorMessage = message)
                     }
                 }
             }

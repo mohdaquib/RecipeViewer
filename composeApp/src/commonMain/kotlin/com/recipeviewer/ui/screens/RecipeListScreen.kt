@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,12 +18,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -29,10 +31,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.recipeviewer.domain.RecipePreview
+import com.recipeviewer.ui.components.ShimmerRecipeCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +43,8 @@ fun RecipeListScreen(
     viewModel: RecipeListViewModel = remember { RecipeListViewModel() },
 ) {
     val state by viewModel.uiState.collectAsState()
+    val isRefreshing = state.isLoading && !state.recipes.isEmpty()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -48,58 +52,49 @@ fun RecipeListScreen(
             )
         },
     ) { paddingValues ->
-        when {
-            state.isLoading -> {
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-
-            state.errorMessage != null -> {
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                            .padding(24.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { viewModel.retry() },
+            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(0.dp)
+        ) {
+            when {
+                state.isLoading && state.recipes.isEmpty() -> {
+                    LazyColumn(
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text = state.errorMessage ?: "Unknown error",
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                        Button(onClick = { viewModel.retry() }) {
-                            Text("Retry")
+                        items(10) {
+                            ShimmerRecipeCard()
                         }
                     }
                 }
-            }
 
-            else -> {
-                LazyColumn(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(state.recipes) { recipe ->
-                        RecipeCard(
-                            recipe = recipe,
-                            onClick = { onRecipeClick(recipe.id) },
-                        )
+                state.errorMessage != null -> {
+                    Box(Modifier.fillMaxSize(), Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(state.errorMessage!!)
+                            Spacer(Modifier.height(16.dp))
+                            Button(onClick = { viewModel.retry() }) {
+                                Text("Retry")
+                            }
+                        }
+                    }
+                }
+
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(start = 16.dp,
+                            end = 16.dp,
+                            bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        items(state.recipes) { recipe ->
+                            RecipeCard(
+                                recipe = recipe,
+                                onClick = { onRecipeClick(recipe.id) },
+                            )
+                        }
                     }
                 }
             }

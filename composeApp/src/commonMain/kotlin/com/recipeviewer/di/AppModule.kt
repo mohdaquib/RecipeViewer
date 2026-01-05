@@ -10,10 +10,10 @@ import com.recipeviewer.domain.usecases.GetRecipeByIdUseCase
 import com.recipeviewer.domain.usecases.SearchRecipesUseCase
 
 object AppModule {
-    val isDebug: Boolean = true
+    private val useFakeApi = false
 
     private val recipeApi: RecipeApi by lazy {
-        if (isDebug) {
+        if (useFakeApi) {
             FakeRecipeApi()
         } else {
             RecipeApiImpl(createRecipeHttpClient())

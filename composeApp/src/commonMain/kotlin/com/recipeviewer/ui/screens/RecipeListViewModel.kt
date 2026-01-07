@@ -7,46 +7,76 @@ import com.recipeviewer.di.AppModule
 import com.recipeviewer.domain.RecipePreview
 import com.recipeviewer.domain.error.NetworkError
 import com.recipeviewer.domain.usecases.SearchRecipesUseCase
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class RecipeListViewModel(private val searchRecipesUseCase: SearchRecipesUseCase = AppModule.searchRecipesUseCase): ViewModel() {
+@OptIn(FlowPreview::class)
+class RecipeListViewModel(
+    private val searchRecipesUseCase: SearchRecipesUseCase = AppModule.searchRecipesUseCase,
+) : ViewModel() {
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
     private val _uiState = MutableStateFlow(RecipeListUiState())
     val uiState: StateFlow<RecipeListUiState> = _uiState
 
     init {
-        loadRecipes()
-    }
-
-    private fun loadRecipes() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            val result = searchRecipesUseCase(query = "")
-            _uiState.update {
-                when {
-                    result.isSuccess -> {
-                        val recipes = result.getOrNull() ?: emptyList()
-                        it.copy(isLoading = false, recipes = recipes, errorMessage = if (recipes.isEmpty()) "No recipes found" else null)
-                    }
-                    else -> {
-                        val message = when (val error = result.exceptionOrNull()) {
-                            NetworkError.NoInternet -> "No internet connection"
-                            NetworkError.Timeout -> "Connection timed out"
-                            NetworkError.UnknownHost -> "Cannot reach server. Check your connection."
-                            NetworkError.ServerError -> "Server error. Try again later."
-                            else -> error?.message ?: "Something went wrong"
+            searchQuery
+                .debounce(400L)
+                .distinctUntilChanged()
+                .filter { it.isNotBlank() || it.isEmpty() }
+                .collectLatest { query ->
+                    _uiState.update { it.copy(isLoading = true) }
+                    val result =
+                        if (query.isBlank()) {
+                            searchRecipesUseCase("Chicken") // default recipe
+                        } else {
+                            searchRecipesUseCase(query)
                         }
-                        it.copy(isLoading = false, errorMessage = message)
+
+                    _uiState.update { current ->
+                        if (result.isSuccess) {
+                            val recipes = result.getOrNull() ?: emptyList()
+                            current.copy(
+                                isLoading = false,
+                                recipes = recipes,
+                                errorMessage = if (recipes.isEmpty()) "No results for \"$query\"" else null,
+                            )
+                        } else {
+                            val message =
+                                when (val error = result.exceptionOrNull()) {
+                                    NetworkError.NoInternet -> "No internet connection"
+                                    NetworkError.Timeout -> "Connection timed out"
+                                    NetworkError.UnknownHost -> "Cannot reach server. Check your connection."
+                                    NetworkError.ServerError -> "Server error. Try again later."
+                                    else -> error?.message ?: "Search failed"
+                                }
+                            current.copy(isLoading = false, errorMessage = message)
+                        }
                     }
                 }
-            }
         }
     }
 
+    fun onSearchQueryChanged(newQuery: String) {
+        _searchQuery.value = newQuery
+    }
+
+    fun clearSearch() {
+        _searchQuery.value = ""
+    }
+
     fun retry() {
-        loadRecipes()
+        onSearchQueryChanged(_searchQuery.value)
     }
 }
 
@@ -54,5 +84,5 @@ class RecipeListViewModel(private val searchRecipesUseCase: SearchRecipesUseCase
 data class RecipeListUiState(
     val isLoading: Boolean = false,
     val recipes: List<RecipePreview> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
 )

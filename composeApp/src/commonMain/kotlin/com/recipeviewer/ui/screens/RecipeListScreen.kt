@@ -34,6 +34,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.recipeviewer.domain.RecipePreview
+import com.recipeviewer.ui.components.SearchableTopAppBar
 import com.recipeviewer.ui.components.ShimmerRecipeCard
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,11 +45,15 @@ fun RecipeListScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val isRefreshing = state.isLoading && !state.recipes.isEmpty()
+    val searchQuery by viewModel.searchQuery.collectAsState()
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Recipes 🍳") },
+            SearchableTopAppBar(
+                title = "Recipes 🍳",
+                searchQuery = searchQuery,
+                onSearchQueryChange = { viewModel.onSearchQueryChanged(it) },
+                onClearSearch = { viewModel.clearSearch() }
             )
         },
     ) { paddingValues ->

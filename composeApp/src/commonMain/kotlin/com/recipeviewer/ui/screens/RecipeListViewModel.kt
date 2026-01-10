@@ -6,7 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.recipeviewer.di.AppModule
 import com.recipeviewer.domain.Category
 import com.recipeviewer.domain.RecipePreview
-import com.recipeviewer.domain.error.NetworkError
+import com.recipeviewer.domain.error.NoInternet
+import com.recipeviewer.domain.error.ServerError
+import com.recipeviewer.domain.error.Timeout
+import com.recipeviewer.domain.error.UnknownHost
 import com.recipeviewer.domain.usecases.GetRecipeByCategoryUseCase
 import com.recipeviewer.domain.usecases.GetRecipeCategoriesUseCase
 import com.recipeviewer.domain.usecases.SearchRecipesUseCase
@@ -18,7 +21,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -26,7 +28,7 @@ import kotlinx.coroutines.launch
 class RecipeListViewModel(
     private val searchRecipesUseCase: SearchRecipesUseCase = AppModule.searchRecipesUseCase,
     private val getRecipeCategoriesUseCase: GetRecipeCategoriesUseCase = AppModule.getRecipeCategoriesUseCase,
-    private val getRecipeByCategoryUseCase: GetRecipeByCategoryUseCase = AppModule.getRecipeByCategoryUseCase
+    private val getRecipeByCategoryUseCase: GetRecipeByCategoryUseCase = AppModule.getRecipeByCategoryUseCase,
 ) : ViewModel() {
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -60,17 +62,20 @@ class RecipeListViewModel(
                 Pair(query, category)
             }.collectLatest { (query, category) ->
                 _uiState.update { it.copy(isLoading = true) }
-                val result = when {
-                    category != null && query.isBlank() -> {
-                        getRecipeByCategoryUseCase(category)
+                val result =
+                    when {
+                        category != null && query.isBlank() -> {
+                            getRecipeByCategoryUseCase(category)
+                        }
+
+                        category == null && query.isBlank() -> {
+                            searchRecipesUseCase(query = "Chicken")
+                        }
+
+                        else -> {
+                            searchRecipesUseCase(query)
+                        }
                     }
-                    category == null && query.isBlank() -> {
-                        searchRecipesUseCase(query = "Chicken")
-                    }
-                    else -> {
-                        searchRecipesUseCase(query)
-                    }
-                }
 
                 _uiState.update { current ->
                     if (result.isSuccess) {
@@ -78,22 +83,25 @@ class RecipeListViewModel(
                         current.copy(
                             isLoading = false,
                             recipes = recipes,
-                            errorMessage = if (recipes.isEmpty()) {
-                                when {
-                                    query.isNotBlank() -> "No results for \"$query\""
-                                    category != null -> "No recipes in $category"
-                                    else -> "No recipes found"
-                                }
-                            } else null
+                            errorMessage =
+                                if (recipes.isEmpty()) {
+                                    when {
+                                        query.isNotBlank() -> "No results for \"$query\""
+                                        category != null -> "No recipes in $category"
+                                        else -> "No recipes found"
+                                    }
+                                } else {
+                                    null
+                                },
                         )
                     } else {
                         val message =
                             when (val error = result.exceptionOrNull()) {
-                                NetworkError.NoInternet -> "No internet connection"
-                                NetworkError.Timeout -> "Connection timed out"
-                                NetworkError.UnknownHost -> "Cannot reach server. Check your connection."
-                                NetworkError.ServerError -> "Server error. Try again later."
-                                else -> error?.message ?: "Search failed"
+                                NoInternet() -> "No internet connection"
+                                Timeout() -> "Connection timed out"
+                                UnknownHost() -> "Cannot reach server. Check your connection."
+                                ServerError() -> "Server error. Try again later."
+                                else -> error?.message ?: "Something went wrong"
                             }
                         current.copy(isLoading = false, errorMessage = message)
                     }

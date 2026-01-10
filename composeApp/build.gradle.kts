@@ -36,6 +36,9 @@ kotlin {
             implementation(libs.ktor.client.android)
         }
         commonMain.dependencies {
+            // Material 3 Window size
+            implementation(libs.material3.window.size)
+
             // Compose
             implementation(compose.runtime)
             implementation(compose.foundation)

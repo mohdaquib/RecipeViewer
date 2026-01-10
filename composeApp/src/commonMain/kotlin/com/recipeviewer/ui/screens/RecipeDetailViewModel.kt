@@ -6,6 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.recipeviewer.di.AppModule
 import com.recipeviewer.domain.RecipeDetail
 import com.recipeviewer.domain.error.NetworkError
+import com.recipeviewer.domain.error.NoInternet
+import com.recipeviewer.domain.error.ServerError
+import com.recipeviewer.domain.error.Timeout
+import com.recipeviewer.domain.error.UnknownHost
 import com.recipeviewer.domain.usecases.GetRecipeByIdUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,10 +43,10 @@ class RecipeDetailViewModel(
                     }
                     else -> {
                         val message = when (val error = result.exceptionOrNull()) {
-                            NetworkError.NoInternet -> "No internet connection"
-                            NetworkError.Timeout -> "Connection timed out"
-                            NetworkError.UnknownHost -> "Cannot reach server. Check your connection."
-                            NetworkError.ServerError -> "Server error. Try again later."
+                            NoInternet() -> "No internet connection"
+                            Timeout() -> "Connection timed out"
+                            UnknownHost() -> "Cannot reach server. Check your connection."
+                            ServerError() -> "Server error. Try again later."
                             else -> error?.message ?: "Something went wrong"
                         }
                         it.copy(isLoading = false, errorMessage = message)

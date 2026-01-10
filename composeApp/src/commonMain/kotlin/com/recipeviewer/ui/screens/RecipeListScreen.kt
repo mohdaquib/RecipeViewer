@@ -14,11 +14,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.recipeviewer.domain.Category
 import com.recipeviewer.domain.RecipePreview
 import com.recipeviewer.ui.components.SearchableTopAppBar
 import com.recipeviewer.ui.components.ShimmerRecipeCard
@@ -49,24 +55,31 @@ fun RecipeListScreen(
 
     Scaffold(
         topBar = {
-            SearchableTopAppBar(
-                title = "Recipes 🍳",
-                searchQuery = searchQuery,
-                onSearchQueryChange = { viewModel.onSearchQueryChanged(it) },
-                onClearSearch = { viewModel.clearSearch() }
-            )
+            Column {
+                SearchableTopAppBar(
+                    title = "Recipes 🍳",
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = viewModel::onSearchQueryChanged,
+                    onClearSearch = viewModel::clearSearch,
+                )
+                CategoryChips(
+                    categories = viewModel.categories.value,
+                    selectedCategory = viewModel.selectedCategory.value,
+                    onCategorySelected = viewModel::selectCategory,
+                )
+            }
         },
     ) { paddingValues ->
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = { viewModel.retry() },
-            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(0.dp)
+            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(0.dp),
         ) {
             when {
                 state.isLoading && state.recipes.isEmpty() -> {
                     LazyColumn(
                         contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         items(10) {
                             ShimmerRecipeCard()
@@ -89,9 +102,12 @@ fun RecipeListScreen(
                 else -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(start = 16.dp,
-                            end = 16.dp,
-                            bottom = 16.dp),
+                        contentPadding =
+                            PaddingValues(
+                                start = 16.dp,
+                                end = 16.dp,
+                                bottom = 16.dp,
+                            ),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         items(state.recipes) { recipe ->
@@ -169,4 +185,42 @@ private fun AsyncImageLoader(
         modifier = modifier,
         contentScale = contentScale,
     )
+}
+
+@Composable
+fun CategoryChips(
+    categories: List<Category>,
+    selectedCategory: String?,
+    onCategorySelected: (String?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyRow(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        item {
+            FilterChip(
+                selected = selectedCategory == null,
+                onClick = { onCategorySelected(null) },
+                label = { Text("All") },
+                leadingIcon = {
+                    if (selectedCategory == null) Icon(Icons.Default.Check, null)
+                },
+            )
+        }
+
+        items(categories) { category ->
+            FilterChip(
+                selected = selectedCategory == category.name,
+                onClick = { onCategorySelected(category.name) },
+                label = { Text(category.name) },
+                leadingIcon = {
+                    if (selectedCategory == category.name) Icon(Icons.Default.Check, null)
+                },
+            )
+        }
+    }
 }

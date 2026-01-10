@@ -1,20 +1,23 @@
 package com.recipeviewer.data.transformers
 
-import com.recipeviewer.data.remote.MealDto
+import com.recipeviewer.data.remote.CategoryDto
+import com.recipeviewer.data.remote.MealDetailDto
+import com.recipeviewer.data.remote.MealPreviewDto
+import com.recipeviewer.domain.Category
 import com.recipeviewer.domain.Ingredient
 import com.recipeviewer.domain.RecipeDetail
 import com.recipeviewer.domain.RecipePreview
 
-fun MealDto.toRecipePreview(): RecipePreview =
+fun MealPreviewDto.toRecipePreview(): RecipePreview =
     RecipePreview(
         id = id,
         name = name,
-        category = category,
+        category = category ?: "Unknown",
         area = area,
         thumbnailUrl = thumbnailUrl,
     )
 
-fun MealDto.toRecipeDetail(): RecipeDetail {
+fun MealDetailDto.toRecipeDetail(): RecipeDetail {
     val ingredients = mutableListOf<Ingredient>()
     repeat(20) { index ->
         val ingredient =
@@ -82,3 +85,11 @@ fun MealDto.toRecipeDetail(): RecipeDetail {
         ingredients = ingredients,
     )
 }
+
+fun CategoryDto.toCategory() =
+    Category(
+        id = name,
+        name = name,
+        thumbnailUrl = "https://www.themealdb.com/images/category/${name.lowercase()}.png",
+        description = "",
+    )

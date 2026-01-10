@@ -1,14 +1,12 @@
 package com.recipeviewer.domain.error
 
-sealed interface AppError {
-    data class Network(val message: String, val cause: Throwable? = null) : AppError
-    data class NotFound(val message: String) : AppError
-    data class Unknown(val message: String, val cause: Throwable?) : AppError
-}
+sealed class AppError(message: String, cause: Throwable? = null) : Exception(message, cause)
 
-sealed interface NetworkError : AppError {
-    data object NoInternet : NetworkError
-    data object Timeout : NetworkError
-    data object ServerError : NetworkError
-    data object UnknownHost : NetworkError
-}
+sealed class NetworkError(message: String, cause: Throwable? = null) : AppError(message, cause)
+
+class NoInternet : NetworkError("No internet connection")
+class Timeout : NetworkError("Request timed out")
+class ServerError : NetworkError("Server error (e.g. 404)")
+class UnknownHost : NetworkError("Cannot resolve host")
+
+data class Unknown(override val message: String, override val cause: Throwable? = null) : AppError(message, cause)

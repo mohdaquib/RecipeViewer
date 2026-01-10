@@ -1,49 +1,41 @@
 package com.recipeviewer.data.remote
 
+import com.recipeviewer.domain.Category
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class MealsResponse(
     @SerialName("meals")
-    val meals: List<MealDto>? = null
+    val meals: List<MealPreviewDto>? = null,
 )
 
 @Serializable
-data class MealResponse(
+data class MealDetailResponse(
     @SerialName("meals")
-    val meals: List<MealDto>? = null
+    val meals: List<MealDetailDto>? = null,
 )
 
 @Serializable
-data class MealDto(
+data class MealDetailDto(
     @SerialName("idMeal")
     val id: String,
-
     @SerialName("strMeal")
     val name: String,
-
     @SerialName("strCategory")
     val category: String,
-
     @SerialName("strArea")
     val area: String?,
-
     @SerialName("strInstructions")
     val instructions: String,
-
     @SerialName("strMealThumb")
     val thumbnailUrl: String,
-
     @SerialName("strTags")
     val tags: String?,
-
     @SerialName("strYoutube")
     val youtubeUrl: String?,
-
     @SerialName("strSource")
     val sourceUrl: String?,
-
     // Ingredients & measures
     @SerialName("strIngredient1") val strIngredient1: String?,
     @SerialName("strIngredient2") val strIngredient2: String?,
@@ -65,7 +57,6 @@ data class MealDto(
     @SerialName("strIngredient18") val strIngredient18: String?,
     @SerialName("strIngredient19") val strIngredient19: String?,
     @SerialName("strIngredient20") val strIngredient20: String?,
-
     @SerialName("strMeasure1") val strMeasure1: String?,
     @SerialName("strMeasure2") val strMeasure2: String?,
     @SerialName("strMeasure3") val strMeasure3: String?,
@@ -85,5 +76,25 @@ data class MealDto(
     @SerialName("strMeasure17") val strMeasure17: String?,
     @SerialName("strMeasure18") val strMeasure18: String?,
     @SerialName("strMeasure19") val strMeasure19: String?,
-    @SerialName("strMeasure20") val strMeasure20: String?
+    @SerialName("strMeasure20") val strMeasure20: String?,
+)
+
+@Serializable
+data class MealPreviewDto(
+    @SerialName("idMeal") val id: String,
+    @SerialName("strMeal") val name: String,
+    @SerialName("strCategory") val category: String? = null,
+    @SerialName("strArea") val area: String? = null,
+    @SerialName("strMealThumb") val thumbnailUrl: String
+)
+
+@Serializable
+data class CategoriesResponse(
+    @SerialName("meals")
+    val meals: List<CategoryDto>?,
+)
+
+@Serializable
+data class CategoryDto(
+    @SerialName("strCategory") val name: String,
 )

@@ -1,11 +1,18 @@
 package com.recipeviewer.data.remote
 
+import com.recipeviewer.data.transformers.toCategory
 import com.recipeviewer.data.transformers.toRecipeDetail
 import com.recipeviewer.data.transformers.toRecipePreview
+import com.recipeviewer.domain.Category
 import com.recipeviewer.domain.RecipeDetail
 import com.recipeviewer.domain.RecipePreview
 import com.recipeviewer.domain.error.AppError
 import com.recipeviewer.domain.error.NetworkError
+import com.recipeviewer.domain.error.NoInternet
+import com.recipeviewer.domain.error.ServerError
+import com.recipeviewer.domain.error.Timeout
+import com.recipeviewer.domain.error.Unknown
+import com.recipeviewer.domain.error.UnknownHost
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -21,6 +28,8 @@ interface RecipeApi {
     suspend fun searchRecipes(query: String): Result<List<RecipePreview>>
 
     suspend fun getRecipesByCategory(category: String): Result<List<RecipePreview>>
+
+    suspend fun getCategories(): Result<List<Category>>
 }
 
 class RecipeApiImpl(
@@ -30,7 +39,7 @@ class RecipeApiImpl(
 
     override suspend fun getRandomRecipe(): Result<RecipeDetail> =
         safeApiCall {
-            val response: MealResponse = client.get("$baseUrl/random.php").body()
+            val response: MealDetailResponse = client.get("$baseUrl/random.php").body()
             response.meals
                 ?.firstOrNull()
                 ?.toRecipeDetail()
@@ -39,7 +48,7 @@ class RecipeApiImpl(
 
     override suspend fun getRecipeById(id: String): Result<RecipeDetail> =
         safeApiCall {
-            val response: MealResponse =
+            val response: MealDetailResponse =
                 client
                     .get("$baseUrl/lookup.php") {
                         parameter("i", id)
@@ -77,6 +86,17 @@ class RecipeApiImpl(
                 ?: emptyList()
         }
 
+    override suspend fun getCategories(): Result<List<Category>> =
+        safeApiCall {
+            val response: CategoriesResponse =
+                client
+                    .get("$baseUrl/list.php") {
+                        parameter("c", "list")
+                    }.body()
+
+            response.meals?.map { it.toCategory() } ?: emptyList()
+        }
+
     private suspend fun <T> safeApiCall(block: suspend () -> T): Result<T> =
         withContext(Dispatchers.IO) {
             try {
@@ -87,30 +107,30 @@ class RecipeApiImpl(
                         e.message?.contains("Unable to resolve host", ignoreCase = true) == true ||
                             e.message?.contains("Network is unreachable", ignoreCase = true) == true ||
                             e.message?.contains("No route to host", ignoreCase = true) == true -> {
-                            NetworkError.NoInternet
+                            NoInternet()
                         }
 
                         // Timeout
                         e.message?.contains("timeout", ignoreCase = true) == true -> {
-                            NetworkError.Timeout
+                            Timeout()
                         }
 
                         // 404 / not found
                         e.message?.contains("404", ignoreCase = true) == true -> {
-                            NetworkError.ServerError
+                            ServerError()
                         }
 
                         // DNS / host resolution (covers UnknownHostException equivalent)
                         e.message?.contains("unknown host", ignoreCase = true) == true ||
                             e.message?.contains("hostname", ignoreCase = true) == true -> {
-                            NetworkError.UnknownHost
+                            UnknownHost()
                         }
 
                         else -> {
-                            AppError.Unknown(e.message ?: "Unknown error", e)
+                            Unknown(e.message ?: "Unknown error", e)
                         }
                     }
-                Result.failure(error as Throwable)
+                Result.failure(error)
             }
         }
 }

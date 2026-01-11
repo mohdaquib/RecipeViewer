@@ -27,7 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -37,9 +36,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.recipeviewer.domain.Category
 import com.recipeviewer.domain.RecipePreview
+import com.recipeviewer.ui.components.RecipeImage
 import com.recipeviewer.ui.components.SearchableTopAppBar
 import com.recipeviewer.ui.components.ShimmerRecipeCard
 
@@ -144,7 +143,7 @@ private fun RecipeCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            AsyncImageLoader(
+            RecipeImage(
                 url = recipe.thumbnailUrl,
                 contentDescription = recipe.name,
                 modifier =
@@ -170,21 +169,6 @@ private fun RecipeCard(
             }
         }
     }
-}
-
-@Composable
-private fun AsyncImageLoader(
-    url: String,
-    contentDescription: String?,
-    modifier: Modifier = Modifier,
-    contentScale: ContentScale = ContentScale.Fit,
-) {
-    AsyncImage(
-        model = url,
-        contentDescription = contentDescription,
-        modifier = modifier,
-        contentScale = contentScale,
-    )
 }
 
 @Composable

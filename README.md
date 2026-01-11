@@ -28,9 +28,11 @@ Runs on **Android**, **iOS**, **Desktop (JVM)**, and **Web (WASM)** with shared 
 ### Screenshots & Demo
 
 **Light / Dark mode**
+
 ![Light & Dark](docs/screenshots/home_screen_light_dark_theme.png)
 
-**Search + Category filtering**  
+**Search + Category filtering**
+
 ![Search & Filter GIF](docs/screenshots/search-filter.gif)
 
 ### Architecture Overview

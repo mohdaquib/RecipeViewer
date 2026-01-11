@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -35,6 +36,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.recipeviewer.domain.Category
 import com.recipeviewer.domain.RecipePreview
@@ -89,7 +94,11 @@ fun RecipeListScreen(
                 state.errorMessage != null -> {
                     Box(Modifier.fillMaxSize(), Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(state.errorMessage!!)
+                            Text(
+                                state.errorMessage ?: "Something went wrong",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
                             Spacer(Modifier.height(16.dp))
                             Button(onClick = { viewModel.retry() }) {
                                 Text("Retry")
@@ -132,7 +141,17 @@ private fun RecipeCard(
         modifier =
             modifier
                 .fillMaxWidth()
-                .clickable(onClick = onClick),
+                .minimumInteractiveComponentSize()
+                .clickable(onClick = onClick)
+                .semantics(mergeDescendants = true) {
+                    role = Role.Button
+                    contentDescription =
+                        buildString {
+                            append(recipe.name)
+                            append(", ${recipe.category}")
+                            if (recipe.area != null) append(" from ${recipe.area}")
+                        }
+                },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Row(

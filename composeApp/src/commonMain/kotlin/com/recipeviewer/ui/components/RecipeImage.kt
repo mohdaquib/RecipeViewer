@@ -50,7 +50,7 @@ fun RecipeImage(
             is AsyncImagePainter.State.Success -> {
                 Image(
                     painter = painter,
-                    contentDescription = contentDescription,
+                    contentDescription = contentDescription ?: "Recipe Image",
                     contentScale = contentScale,
                     modifier = modifier.clip(RoundedCornerShape(16.dp)),
                 )

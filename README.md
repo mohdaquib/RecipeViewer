@@ -4,14 +4,9 @@ A modern **Kotlin Multiplatform** + **Compose Multiplatform** recipe browser usi
 
 Runs on **Android**, **iOS**, **Desktop (JVM)**, and **Web (WASM)** with shared business logic & UI.
 
-![Light & Dark Theme](docs/screenshots/light-dark-split.png)
-![Search & Categories](docs/screenshots/search-categories.gif)
-![Favorites Tab](docs/screenshots/favorites-tab.png)
-
 ### Features
 - Browse recipes by category or search
 - View full recipe details (ingredients, instructions, video link)
-- Favorites (persisted locally)
 - Pull-to-refresh + shimmer loading
 - Real-time search with debounce
 - Light/Dark theme (system + Material You dynamic colors on Android)
@@ -19,30 +14,24 @@ Runs on **Android**, **iOS**, **Desktop (JVM)**, and **Web (WASM)** with shared 
 - Clean architecture (Repository + ViewModel + Result pattern)
 
 ### Tech Stack
-| Category              | Technologies                                                                 |
+| Category              | Technologies                                                                |
 |-----------------------|-----------------------------------------------------------------------------|
-| Language              | Kotlin 2.1.x                                                                |
-| UI                    | Compose Multiplatform 1.8+ (Material3)                                      |
-| Networking            | Ktor Client + kotlinx-serialization                                        |
+| Language              | Kotlin 2.3.0                                                                |
+| UI                    | Compose Multiplatform 1.9+ (Material3)                                      |
+| Networking            | Ktor Client + kotlinx-serialization                                         |
 | Storage               | AndroidX DataStore (Preferences)                                            |
 | Navigation            | Voyager (tabs + screen navigator)                                           |
-| Image Loading         | Kamel (with placeholders, errors, caching)                                  |
-| Architecture          | MVVM + Repository pattern + clean multiplatform separation                 |
+| Image Loading         | Coil-Compose (with placeholders, errors, caching)                                  |
+| Architecture          | MVVM + Repository pattern + clean multiplatform separation                  |
 | Platforms             | Android • iOS • Desktop (JVM) • Web (WASM – optional)                       |
 
 ### Screenshots & Demo
 
-**Light / Dark mode**  
-![Light & Dark](docs/screenshots/light-dark-split.png)
+**Light / Dark mode**
+![Light & Dark](docs/screenshots/home_screen_light_dark_theme.png)
 
 **Search + Category filtering**  
 ![Search & Filter GIF](docs/screenshots/search-filter.gif)
-
-**Favorites tab**  
-![Favorites](docs/screenshots/favorites-empty.png) → ![With items](docs/screenshots/favorites-filled.png)
-
-**Accessibility (TalkBack reading recipe card)**  
-![TalkBack demo](docs/screenshots/talkback-demo.png)
 
 ### Architecture Overview
 
@@ -55,6 +44,15 @@ ViewModels (StateFlow + ViewModelScope)
 Repository (Result<T> wrapper)
            ↓
      Data (Ktor API)
+
+![Architecture](docs/arch/Architecture.png)
+
+### License
+MIT License
+
+### Contributing
+Feel free to open issues or PRs!
+Made with ❤️ using Kotlin Multiplatform
 
 ### Build & Run
 

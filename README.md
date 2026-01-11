@@ -37,16 +37,6 @@ Runs on **Android**, **iOS**, **Desktop (JVM)**, and **Web (WASM)** with shared 
 
 ### Architecture Overview
 
-App (Compose Multiplatform)
-            ↓ 
-Voyager (Tabs + Navigation)
-            ↓
-ViewModels (StateFlow + ViewModelScope)
-            ↓
-Repository (Result<T> wrapper)
-           ↓
-     Data (Ktor API)
-
 ![Architecture](docs/arch/Architecture.png)
 
 ### License
